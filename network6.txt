@@ -1,0 +1,13 @@
+6
+10
+Anastasija Maja Marko Matija Nikola Sanja
+Anastasija Marko 0.55
+Anastasija Nikola 0.4
+Maja Anastasija 0.61
+Maja Marko 0.43
+Matija Marko 0.82
+Matija Sanja 0.21
+Nikola Marko 0.88
+Nikola Sanja 0.65
+Sanja Anastasija 0.39
+Sanja Maja 0.74

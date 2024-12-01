@@ -1,0 +1,25 @@
+15
+22
+Alex Alice Ann Arnold Bob Jill John Kate Lisa Mark Mary Peter Rick Rob Tom
+Alice Mark 0.15
+Ann Alice 0.94
+Arnold Kate 0.54
+Arnold Rick 0.35
+Bob Alex 0.57
+Bob Mark 0.48
+John Alice 0.42
+Mark Alex 0.6
+Mark Ann 0.12
+Mark Bob 0.64
+Mary Tom 0.18
+Peter Mark 0.5
+Peter Rick 0.48
+Rick Lisa 0.48
+Rick Peter 0.5
+Rob Lisa 0.55
+Rob Mary 0.78
+Tom Alice 0.66
+Tom Arnold 0.88
+Tom Lisa 0.7
+Tom Mary 0.97
+Tom Rob 0.37
