@@ -2,25 +2,25 @@
 #include "graphexcep.h"
 #include <iostream>
 #include <string>
-using namespace std;
 
 void log_instructions() {
-	cout << "+----------------------------------------+" << endl;
-	cout << "| ADD node                               |" << endl;
-	cout << "| ADD from to weight                     |" << endl;
-	cout << "| REMOVE node                            |" << endl;
-	cout << "| REMOVE from to                         |" << endl;
-	cout << "| LIKE from to                           |" << endl;
-	cout << "| LOAD file                              |" << endl;
-	cout << "| PRINT                                  |" << endl;
-	cout << "| CLEAR                                  |" << endl;
-	cout << "| QUIT                                   |" << endl;
-	cout << "+----------------------------------------+" << endl;
+	std::cout << "+----------------------------------------+" << std::endl;
+	std::cout << "| ADD node                               |" << std::endl;
+	std::cout << "| ADD from to weight                     |" << std::endl;
+	std::cout << "| REMOVE node                            |" << std::endl;
+	std::cout << "| REMOVE from to                         |" << std::endl;
+	std::cout << "| LIKE from to                           |" << std::endl;
+	std::cout << "| LOAD file                              |" << std::endl;
+	std::cout << "| SCC                                    |" << std::endl;
+	std::cout << "| PRINT                                  |" << std::endl;
+	std::cout << "| CLEAR                                  |" << std::endl;
+	std::cout << "| QUIT                                   |" << std::endl;
+	std::cout << "+----------------------------------------+" << std::endl;
 }
 
-vector<string> split_to_words(string instr) {
-	string word;
-	vector<string> words;
+Vector<std::string> split_to_words(std::string instr) {
+	std::string word;
+	Vector<std::string> words;
 
 	for (size_t i=0; i<instr.size(); i++) {
 		if (isspace(instr[i])) {
@@ -44,18 +44,11 @@ int main() {
 	Graph *graph = new Graph();
 	log_instructions();
 
-	//TODO sta rade addNode, addEdge ukoliko node/edge vec postoji
-	//addEdge -> edge alafd.af.a.
-	//addNode -> node
-	//
-	//removeNode -> NoNode              |
-	//removeEdge -> NoNode, NoEdge      | > GraphExcep
-
-	string instr;
+	std::string instr;
 	while(true) {
-		cout << "$ ";
-		getline(cin, instr);
-		vector<string> words = split_to_words(instr);
+		std::cout << "$ ";
+		getline(std::cin, instr);
+		Vector<std::string> words = split_to_words(instr);
 		if (words[0]=="ADD") {
 			try {
 				if (words.size()==2) {
@@ -63,10 +56,10 @@ int main() {
 				} else if (words.size()==4) {
 					graph->addEdge(words[1], words[2], stod(words[3])); //sta ako grana postoji u grapu
 				} else {
-					cout << "Invalid instruction" << endl;
+					std::cout << "Invalid instruction" << std::endl;
 				}
 			} catch (GraphExcep *e) {
-				cout << e->message() << endl;
+				std::cout << e->message() << std::endl;
 				delete e;
 			}
 		} else if (words[0]=="REMOVE") {
@@ -76,55 +69,70 @@ int main() {
 				} else if(words.size()==3) {
 					graph->removeEdge(words[1], words[2]);
 				} else {
-					cout << "Invalid instruction" << endl;
+					std::cout << "Invalid instruction" << std::endl;
 				}
 			} catch (GraphExcep *e) {
-				cout << e->message() << endl;
+				std::cout << e->message() << std::endl;
 				delete e;
 			}
 		} else if (words[0]=="LOAD") {
 			if (words.size()!=2) {
-				cout << "Invalid instruction" << endl;
+				std::cout << "Invalid instruction" << std::endl;
 			}
 
 			try {
 				Graph *new_graph = new Graph(words[1]);
 				delete graph;
 				graph = new_graph;
-			} catch (string err) {
-				cout << err << endl;
+			} catch (std::string err) {
+				std::cout << err << std::endl;
 			}
 		} else if (words[0]=="PRINT") {
 			if (words.size()!=1) {
-				cout << "Invalid instruction" << endl;
+				std::cout << "Invalid instruction" << std::endl;
 			}
 
 			graph->printEdges();
 		} else if (words[0]=="CLEAR") {
 			if (words.size()!=1) {
-				cout << "Invalid instruction" << endl;
+				std::cout << "Invalid instruction" << std::endl;
 			}
 
 			//graph->clear();
 		} else if (words[0]=="QUIT") {
 			if (words.size()!=1) {
-				cout << "Invalid instruction" << endl;
+				std::cout << "Invalid instruction" << std::endl;
 			}
 
 			break;
 		} else if (words[0]=="LIKE") {
 			if (words.size()!=3) {
-				cout << "Invalid instruction" << endl;
+				std::cout << "Invalid instruction" << std::endl;
 			}
 
 			try {
 				graph->like(words[1], words[2]);
 			} catch (GraphExcep *e) {
-				cout << e->message() << endl;
+				std::cout << e->message() << std::endl;
 				delete e;
 			}
+		} else if (words[0]=="SCC") {
+			if (words.size()!=1) {
+				std::cout << "Invalid instruction" << std::endl;
+			}
+
+			Vector<Vector<std::string>> sccs = graph->scc();
+			for (int i=0; i<sccs.size(); i++) {
+				std::cout << "{" << sccs[i][0];
+				for (int j=1; j<sccs[i].size(); j++) {
+					std::cout << ", " << sccs[i][j];
+				}
+
+				std::cout << "}" << std::endl;
+			}
+
 		} else {
-			cout << "Invalid instruction" << endl;
+			std::cout << "Invalid instruction" << std::endl;
 		}
 	}
 
