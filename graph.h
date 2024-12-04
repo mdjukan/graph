@@ -21,15 +21,13 @@ class Graph {
 		void addEdge(std::string from, std::string to, double w);
 		int getEdge(std::string from, std::string to);
 		int getEdge(int from_idx, int to_idx);
+		double getEdgeWeight(int from_idx, int to_idx);
 		void removeEdge(int from_idx, int to_idx);
 		void removeEdge(std::string from, std::string to);
 		void removeNode(std::string name);
 		void printEdges();
 		void like(std::string from, std::string to);
 		Vector<Vector<std::string>> scc();
-
-		//ako nema puta -> no paht
-		//ime (w) -> ime (w grane) -> ime (w grane) ...
 		std::string mostProbablePath(std::string source, std::string dest);
 
 		/*

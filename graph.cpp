@@ -120,6 +120,10 @@ int Graph::getEdge(int from_idx, int to_idx) {
 	return -1;
 }
 
+double Graph::getEdgeWeight(int from_idx, int to_idx) {
+	return edges[getEdge(from_idx, to_idx)].second;
+}
+
 bool Graph::containsEdge(std::string from, std::string to) {
 	return getEdge(from, to)!=-1;
 }
@@ -288,36 +292,68 @@ Vector<Vector<std::string>> Graph::scc() {
 	return sccs;
 }
 
+#define INF -1
+#define NIL -1
+
 enum Status {
 	VISITED,
+	IN_QUEUE,
 	NOT_VISITED
 };
 
-#define INF -1
-#define NIL -1
+int numInQueue(Vector<Status> &status) {
+	int count = 0;
+	for (int i=0; i<status.size(); i++) {
+		if (status[i]==Status::IN_QUEUE) {
+			count += 1;
+		}
+	}
+
+	return count;
+}
+
+int getMaxInQueue(Vector<double> &dist, Vector<Status> &status) {
+	int max_idx = NIL;
+	for (int i = 0; i<status.size(); i++) {
+		if (status[i]==Status::IN_QUEUE) {
+			if (max_idx==NIL || dist[max_idx] < dist[i]) {
+				max_idx = i;
+			}
+		}
+	}
+
+	return max_idx;
+}
+
 std::string Graph::mostProbablePath(std::string source, std::string dest) {
 	int n = idx_to_name.size();
-	Vector<int> dist(n, INF);
+	Vector<double> dist(n, INF);
 	Vector<int> pred(n, NIL);
 	Vector<Status> status(n, Status::NOT_VISITED);
 
 	int source_idx = idxFromName(source);
 	int dest_idx = idxFromName(dest);
 
-	Queue<int> q;
-	q.put(source_idx);
-	dist[source_idx] = 0;
+	status[source_idx] = Status::IN_QUEUE;
+	dist[source_idx] = 1;
 
-	while (!q.empty()) {
-		int node = q.get();
+	while (numInQueue(status)!=0) {
+		int node = getMaxInQueue(dist, status);
+		status[node] = Status::VISITED;
 
 		for (int i = indices[node]; i<indices[node+1]; i++) {
-			int adj_idx = edges[i].first;
-			if (status[adj_idx]==Status::NOT_VISITED) {
-				q.put(adj_idx);
-				status[adj_idx] = Status::VISITED;
-				dist[adj_idx] = dist[node] + 1;
-				pred[adj_idx] = node;
+			int adj = edges[i].first;
+			double edge_weight = getEdgeWeight(node, adj);
+
+			if (status[adj]==Status::NOT_VISITED) {
+				status[adj] = Status::IN_QUEUE;
+				dist[adj] = dist[node] * edge_weight;
+				pred[adj] = node;
+			} else if (status[adj]==Status::IN_QUEUE) {
+				if (dist[node] * edge_weight > dist[adj]) {
+					dist[adj] = dist[node] * edge_weight;
+					pred[adj] = node;
+				}
 			}
 		}
 	}
