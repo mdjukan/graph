@@ -195,6 +195,10 @@ public:
 		m_size = 0;
 	}
 
+	bool empty() {
+		return m_size==0;
+	}
+
 	size_t size() {
 		return m_size;
 	}

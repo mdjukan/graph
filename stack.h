@@ -14,7 +14,7 @@ class Stack {
 		}
 
 		bool empty() {
-			return m_elems.size()==0;
+			return m_elems.empty();
 		}
 
 		T pop() {

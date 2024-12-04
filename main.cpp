@@ -11,6 +11,7 @@ void log_instructions() {
 	std::cout << "| REMOVE from to                         |" << std::endl;
 	std::cout << "| LIKE from to                           |" << std::endl;
 	std::cout << "| LOAD file                              |" << std::endl;
+	std::cout << "| MPP from to                            |" << std::endl;
 	std::cout << "| SCC                                    |" << std::endl;
 	std::cout << "| PRINT                                  |" << std::endl;
 	std::cout << "| CLEAR                                  |" << std::endl;
@@ -130,7 +131,12 @@ int main() {
 
 				std::cout << "}" << std::endl;
 			}
+		} else if (words[0]=="MPP") {
+			if (words.size()!=3) {
+				std::cout << "Invalid instruction" << std::endl;
+			}
 
+			std::cout << graph->mostProbablePath(words[1], words[2]) << std::endl;
 		} else {
 			std::cout << "Invalid instruction" << std::endl;
 		}

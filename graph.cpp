@@ -7,6 +7,7 @@
 #include "vector.h"
 #include "stack.h"
 #include "tuple.h"
+#include "queue.h"
 
 Graph::Graph() {
 	indices.push_back(0);
@@ -100,10 +101,16 @@ void Graph::addEdge(std::string from, std::string to, double w) {
 	}
 }
 
+//TODO rename getEdgeIdx
 int Graph::getEdge(std::string from, std::string to) {
 	int from_idx = idxFromName(from);
 	int to_idx = idxFromName(to);
 
+	return getEdge(from_idx, to_idx);
+}
+
+//TODO rename getEdgeIdx
+int Graph::getEdge(int from_idx, int to_idx) {
 	for (int i=indices[from_idx]; i<indices[from_idx+1]; i++) {
 		if (edges[i].first==to_idx) {
 			return i;
@@ -279,4 +286,61 @@ Vector<Vector<std::string>> Graph::scc() {
 	}
 
 	return sccs;
+}
+
+enum Status {
+	VISITED,
+	NOT_VISITED
+};
+
+#define INF -1
+#define NIL -1
+std::string Graph::mostProbablePath(std::string source, std::string dest) {
+	int n = idx_to_name.size();
+	Vector<int> dist(n, INF);
+	Vector<int> pred(n, NIL);
+	Vector<Status> status(n, Status::NOT_VISITED);
+
+	int source_idx = idxFromName(source);
+	int dest_idx = idxFromName(dest);
+
+	Queue<int> q;
+	q.put(source_idx);
+	dist[source_idx] = 0;
+
+	while (!q.empty()) {
+		int node = q.get();
+
+		for (int i = indices[node]; i<indices[node+1]; i++) {
+			int adj_idx = edges[i].first;
+			if (status[adj_idx]==Status::NOT_VISITED) {
+				q.put(adj_idx);
+				status[adj_idx] = Status::VISITED;
+				dist[adj_idx] = dist[node] + 1;
+				pred[adj_idx] = node;
+			}
+		}
+	}
+
+	if (status[dest_idx]==Status::NOT_VISITED) {
+		return std::string("no path");
+	} else {
+		Vector<int> path;
+		path.push_back(dest_idx);
+
+		while (path[0]!=source_idx) {
+			path.insert(0, pred[path[0]]);
+		}
+
+		std::stringstream s;
+		for (int i=0; i<path.size(); i++) {
+			s << idx_to_name[path[i]];
+			if (i!=path.size()-1) {
+				int edge_idx = getEdge(path[i], path[i+1]);
+				s << "-(" << edges[edge_idx].second << ")->";
+			}
+		}
+
+		return s.str();
+	}
 }
