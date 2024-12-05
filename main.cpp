@@ -13,6 +13,7 @@ void log_instructions() {
 	std::cout << "| LOAD file                              |" << std::endl;
 	std::cout << "| MPP from to                            |" << std::endl;
 	std::cout << "| SCC                                    |" << std::endl;
+	std::cout << "| INF k                                  |" << std::endl;
 	std::cout << "| PRINT                                  |" << std::endl;
 	std::cout << "| CLEAR                                  |" << std::endl;
 	std::cout << "| QUIT                                   |" << std::endl;
@@ -137,6 +138,13 @@ int main() {
 			}
 
 			std::cout << graph->mostProbablePath(words[1], words[2]) << std::endl;
+		} else if (words[0]=="INF") {
+			if (words.size()!=2) {
+				std::cout << "Invalid instruction" << std::endl;
+			}
+
+			size_t pos = 0;
+			std::cout << graph->kthInfluencer(std::stoi(words[1], &pos)) << std::endl;
 		} else {
 			std::cout << "Invalid instruction" << std::endl;
 		}

@@ -9,6 +9,9 @@
 #include "tuple.h"
 #include "queue.h"
 
+//TEMP
+#include <cstdio>
+
 Graph::Graph() {
 	indices.push_back(0);
 }
@@ -380,3 +383,171 @@ std::string Graph::mostProbablePath(std::string source, std::string dest) {
 		return s.str();
 	}
 }
+
+int Graph::numNodes() {
+	return idx_to_name.size();
+}
+
+#define UNDEF -1
+Vector<Vector<double>> Graph::allPairMostProbbalePath() {
+	Vector<double> row(numNodes(), UNDEF);
+	Vector<Vector<double>> d(numNodes(), row);
+
+	for (int i=0; i<numNodes(); i++) {
+		for (int j=indices[i]; j<indices[i+1]; j++) {
+			d[i][edges[j].first] = edges[j].second;
+		}
+	}
+
+	for (int i=0; i<numNodes(); i++) {
+		d[i][i] = 1;
+	}
+
+	for (int k=0; k<numNodes(); k++) {
+		for (int i=0; i<numNodes(); i++) {
+			for (int j=0; j<numNodes(); j++) {
+				if (d[i][k]!=UNDEF && d[k][j]!=UNDEF) {
+					if (d[i][j]==UNDEF || d[i][j] < d[i][k] * d[k][j]) {
+						d[i][j] = d[i][k] * d[k][j];
+					}
+				}
+			}
+		}
+	}
+
+	/*
+	for (int i=0; i<numNodes(); i++) {
+		for (int j=0; j<numNodes(); j++) {
+			printf("%5.2f ", d[i][j]);
+		}
+		printf("\n");
+	}
+	*/
+
+	return d;
+}
+
+Vector<double> Graph::influence() {
+	Vector<double> inf(numNodes(), 0);
+	Vector<Vector<double>> d = allPairMostProbbalePath();
+
+	//jesno formulisti definiciju influence-a
+	for (int i=0; i<numNodes(); i++) {
+		for (int j=0; j<numNodes(); j++) {
+			if (i!=j && d[i][j]!=UNDEF) {
+				inf[i] += d[j][i];
+			}
+		}
+
+		inf[i] /= numNodes();
+	}
+
+	return inf;
+}
+
+void swap(Pair<int, double> &x, Pair<int, double> &y) {
+	int tmp = x.first;
+	x.first = y.first;
+	y.first = tmp;
+
+	double _tmp = x.second;
+	x.second = y.second;
+	y.second = _tmp;
+}
+
+//>>>>>>><<<<<<??????????
+//
+int partition(Vector<Pair<int, double>> &A, int p, int q) {
+	//x in [i, j) only if x > A[q]
+	//x in [j, k) only if x <= A[q]
+	//>>>>>>>>><<<<<<<<?????????????P
+	//^        ^       ^
+	//i        j       k
+	//
+	//[1] A[k] <= A[q]
+	//>>>>>>>>><<<<<<<<<????????????P
+	//^        ^        ^
+	//i        j        k
+	//---> k++
+	//[2] A[k] > A[q]
+	//>>>>>>>>>><<<<<<<<????????????P
+	//^         ^       ^
+	//i         j       k
+	//---> swap(A[j], A[k])
+	//---> j++, k++
+	
+	int i = p, j = p, k = p;
+	while (k<q) {
+		if (A[k].second > A[q].second) {
+			swap(A[j], A[k]);
+			j ++;
+			k ++;
+		} else {
+			k ++;
+		}
+	}
+
+	//>>>>>>>>>>>><<<<<<<<<<<<P
+	//^           ^           ^
+	//i           j           k=q
+	//---> swap(A[j], A[q])
+	//>>>>>>>>>>>>P<<<<<<<<<<<<
+	//^           ^           ^
+	//i           j           k=q
+	
+	swap(A[j], A[q]);
+	return j;
+
+}
+
+//#include <algorithm>
+//#include <vector>
+//indeksiranje od 1 za korisnia
+//interno je indeksirano od 0
+std::string Graph::kthInfluencer(int k) {
+	if (k<1 || k>numNodes()) {
+		throw std::string("invalid value for k");
+	}
+
+	k -= 1;
+
+	Vector<double> inf = influence();
+	Vector<Pair<int, double>> idx_inf;
+
+	for (int i=0; i<inf.size(); i++) {
+		idx_inf.push_back(Pair<int, double>(i, inf[i]));
+	}
+
+	int p = 0, q = inf.size()-1;
+
+	while (true) {
+		int m = partition(idx_inf, p, q);
+		if (k==m) {
+			break;
+		} else if (k < m) {
+			p = p;
+			q = m - 1;
+		} else { //k > m
+			p = m + 1;
+			q = q;
+		}
+	}
+
+
+	/*
+	int qs_res = idx_inf[k].first;
+	//lambda(x, y) -> true ako x pa y dobar poredak
+	//
+	std::vector<std::pair<int, double>> X;
+	for (int i=0; i < idx_inf.size(); i++) {
+		X.emplace_back(idx_inf[i].first, idx_inf[i].second);
+	}
+
+	std::sort(X.begin(), X.end(), [](const std::pair<int, double> &x, const std::pair<int, double> &y){return x.second>y.second;});
+	int correct_res = X[k].first;
+	std::cout << "qs_res==correct_res -> " << (qs_res==correct_res) << std::endl;
+	*/
+
+	return idx_to_name[idx_inf[k].first];
+}
+

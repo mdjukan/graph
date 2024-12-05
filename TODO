@@ -1,0 +1,31 @@
+[0] Sredjivanje main
+----> brojevi {1, 2, ..., 10}
+3 -> add edge ->
+Enter from node : adsjfajkfdsh
+Enter dest node : kfajdhfkjdahf
+graph->addEdge(..., ....)
+
+switch (intr_num) {
+case:
+<input>
+graph->...
+}
+
+[1] linearnu pretragu kada prevodimo inx u ime
+---> moglo bi da se prepravi na binarnu pretragu
+---> vektor parova (ime, idx) -> koje je sortiran po imenu
+     kada mi je potreban idx za ime, binarnom pretragom u ovom nizu
+     nalazim ime pa samim tim idx
+[teo] binarnu pretragu
+[pro] implementacije binp
+
+[2] std::string --> char * NAME_MAX_LEN = 20
+
+[3] izdvajanje minimalnog elementa u dij -> nije triijalno
+
+[4] broj elemanta ciji je status in queue
+    ---> kad ga dodam +1
+    ---> kad ga ukoliim -1
+    ---> oslobodili jedne linearne pretrage
+
+[5] koji metodi treba da budu private a koji public

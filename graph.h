@@ -11,10 +11,26 @@ class Graph {
 		Vector<int> indices;
 		Vector<std::string> idx_to_name;
 
+		//TODO bsearch -> odrazavamo niz imena sortiran
+		//{(idx, name)} on je sortiran
+		//binarna pretraga po imenu -> O(logn)
+		//dodajem novi cvor -> O(n)  usteda je, ali
+		//O(1)
+		//
+		//........X..........
+		//        ^
+		//        |
 		int idxFromName(std::string name);
+
+	public: //TEMP public
+		Vector<Vector<double>> allPairMostProbbalePath();
+		Vector<double> influence();
+
 	public:
+		//TODO neki metodio bi trebali da postanu private
 		Graph();
 		Graph(std::string file_path);
+		int numNodes();
 		void addNode(std::string name);
 		bool containsNode(std::string name);
 		bool containsEdge(std::string from, std::string to);
@@ -29,6 +45,13 @@ class Graph {
 		void like(std::string from, std::string to);
 		Vector<Vector<std::string>> scc();
 		std::string mostProbablePath(std::string source, std::string dest);
+
+		//sta ako k nije validna vrednost
+		//k<0 || k>=numNodes() -> exception
+		//throw std::string("invalid value for k...")
+		
+		std::string kthInfluencer(int k);
+
 
 		/*
 		//DEBUG
