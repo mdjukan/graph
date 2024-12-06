@@ -144,7 +144,6 @@ public:
 			realloc();
 		}
 
-		//idx, idx+1, ...
 		for (int i=m_size-1; i>=idx; i--) {
 			m_data[i+1] = m_data[i];
 		}

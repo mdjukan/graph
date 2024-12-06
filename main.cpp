@@ -4,152 +4,220 @@
 #include <string>
 
 void log_instructions() {
-	std::cout << "+----------------------------------------+" << std::endl;
-	std::cout << "| ADD node                               |" << std::endl;
-	std::cout << "| ADD from to weight                     |" << std::endl;
-	std::cout << "| REMOVE node                            |" << std::endl;
-	std::cout << "| REMOVE from to                         |" << std::endl;
-	std::cout << "| LIKE from to                           |" << std::endl;
-	std::cout << "| LOAD file                              |" << std::endl;
-	std::cout << "| MPP from to                            |" << std::endl;
-	std::cout << "| SCC                                    |" << std::endl;
-	std::cout << "| INF k                                  |" << std::endl;
-	std::cout << "| PRINT                                  |" << std::endl;
-	std::cout << "| CLEAR                                  |" << std::endl;
-	std::cout << "| QUIT                                   |" << std::endl;
-	std::cout << "+----------------------------------------+" << std::endl;
+	std::cout << "+--------------------------------------------+" << std::endl;
+	std::cout << "| 1 - add node                               |" << std::endl;
+	std::cout << "| 2 - add edge                               |" << std::endl;
+	std::cout << "| 3 - remove node                            |" << std::endl;
+	std::cout << "| 4 - remove edge                            |" << std::endl;
+	std::cout << "| 5 - like                                   |" << std::endl;
+	std::cout << "| 6 - load from file                         |" << std::endl;
+	std::cout << "| 7 - most probbable path                    |" << std::endl;
+	std::cout << "| 8 - largest strongly connected component   |" << std::endl;
+	std::cout << "| 9 - k-th influncer                         |" << std::endl;
+	std::cout << "| 10 - print                                 |" << std::endl;
+	std::cout << "| 11 - quit                                  |" << std::endl;
+	std::cout << "+--------------------------------------------+" << std::endl;
 }
 
-Vector<std::string> split_to_words(std::string instr) {
-	std::string word;
-	Vector<std::string> words;
+void handle_add_node(Graph &g) {
+	std::string node_name;
+	std::cout << "Enter node name: ";
+	std::cin >> node_name;
+	try {
+		g.addNode(node_name);
+		std::cout << "\nNode added successfully!" << std::endl;
+	} catch (NodeExists e) {
+		std::cout << "\nNode with name " << node_name << " already exists.";
+	}
+}
 
-	for (size_t i=0; i<instr.size(); i++) {
-		if (isspace(instr[i])) {
-			if (word.size()!=0) {
-				words.push_back(word);
-				word.clear();
-			}
-		} else {
-			word.push_back(instr[i]);
+void handle_add_edge(Graph &g) {
+	std::string src_name, dest_name;
+	double w;
+	std::cout << "Enter source node name: ";
+	std::cin >> src_name;
+	std::cout << "Enter destination node name: ";
+	std::cin >> dest_name;
+	std::cout << "Enter weight: ";
+	std::cin >> w;
+
+	try {
+		g.addEdge(src_name, dest_name, w);
+		std::cout << "\nEdge added successfully!" << std::endl;
+	} catch (NoNode e) {
+		std::cout << "\nNo node with name " << e.node_name << "." << std::endl;
+	} catch (EdgeExists e) {
+		std::cout << "\nEdge already exists." << std::endl;
+	} catch (InvalidWeight e) {
+		std::cout << "\nInvalid weight." << std::endl;
+	}
+}
+
+void handle_remove_node(Graph &g) {
+	std::string node_name;
+	std::cout << "Enter node name: ";
+	std::cin >> node_name;
+
+	try {
+		g.removeNode(node_name);
+		std::cout << "\nNode removed successfully!" << std::endl;
+	} catch (NoNode e) {
+		std::cout << "\nNode doesn't exist." << std::endl;
+	}
+}
+
+void handle_remove_edge(Graph &g) {
+	std::string src_name, dest_name;
+	std::cout << "Enter source node name: ";
+	std::cin >> src_name;
+	std::cout << "Enter destination node name: ";
+	std::cin >> dest_name;
+
+	try {
+		g.removeEdge(src_name, dest_name);
+		std::cout << "\nEdge removed successfully!" << std::endl;
+	} catch (NoNode e) {
+		std::cout << "\nNode with name " << e.node_name << " doesn't exist." << std::endl;
+	} catch (NoEdge e) {
+		std::cout << "\nEdge from " << src_name << " to " << dest_name << " doesn't exits." << std::endl;
+	}
+}
+
+void handle_like(Graph &g) {
+	std::string src_name, dest_name;
+	std::cout << "Enter like source node name: ";
+	std::cin >> src_name;
+	std::cout << "Enter like destination node name: ";
+	std::cin >> dest_name;
+
+	try {
+		g.like(src_name, dest_name);
+		std::cout << "\nLike added successfully!" << std::endl;
+	} catch (NoNode e) {
+		std::cout << "\nNode with name " << e.node_name << " doesn't exist." << std::endl;
+	} catch (NoEdge e) {
+		std::cout << "\nEdge from " << src_name << " to " << dest_name << " doesn't exits." << std::endl;
+	}
+}
+
+void handle_load_from_file(Graph &g) {
+	std::string file_path;
+	std::cout << "Enter file path: ";
+	std::cin >> file_path;
+
+	try {
+		g = Graph(file_path);
+		std::cout << "\nGraph loaded from a file successfully!" << std::endl;
+	} catch (FileError e) {
+		std::cout << "\nCan't open file." << std::endl;
+	} catch (NodeExists e) {
+		std::cout << "\nDuplicate node." << std::endl;
+	} catch (NoNode e) {
+		std::cout << "\nEdge from/to node that doesn't exists." << std::endl;
+	} catch (EdgeExists e) {
+		std::cout << "\nDuplicate edge." << std::endl;
+	} catch (InvalidWeight e) {
+		std::cout << "\nInvalid weight" << std::endl;
+	}
+}
+
+void handle_most_probable_path(Graph &g) {
+	std::string src_name, dest_name;
+	std::cout << "Enter source node name: ";
+	std::cin >> src_name;
+	std::cout << "Enter destination node name: ";
+	std::cin >> dest_name;
+
+	try {
+		std::cout << std::endl << g.mostProbablePath(src_name, dest_name) << std::endl;
+	} catch (NoNode e) {
+		std::cout << "\nNode with name " << e.node_name << " doesn't exist." << std::endl;
+	}
+}
+
+//sta ako se ovaj metod pozove na praznom grafu
+void handle_largest_scc(Graph &g) {
+	try {
+		Vector<std::string> lscc = g.largestSCC();
+		std::cout << "\n{" << lscc[0];
+		for (int i=1; i<lscc.size(); i++) {
+			std::cout << ", " << lscc[i];
 		}
-	}
 
-	if (word.size()!=0) {
-		words.push_back(word);
+		std::cout << "}" << std::endl;
+	} catch (EmptyGraph e) {
+		std::cout << "\nGraph is empty!" << std::endl;
 	}
+}
 
-	return words;
+void handle_kth_influencer(Graph &g) {
+	std::cout << "Enter k: ";
+	int k;
+	std::cin >> k;
+	try {
+		std::cout << g.kthInfluencer(k) << std::endl;
+	} catch (InvalidKValue e) {
+		std::cout << "\nInvalid value for k." << std::endl;
+	}
+}
+
+void handle_print(Graph &g) {
+	std::cout << std::endl;
+	g.printEdges();
 }
 
 int main() {
-	Graph *graph = new Graph();
-	log_instructions();
+	Graph g = Graph();
 
-	std::string instr;
-	while(true) {
-		std::cout << "$ ";
-		getline(std::cin, instr);
-		Vector<std::string> words = split_to_words(instr);
-		if (words[0]=="ADD") {
-			try {
-				if (words.size()==2) {
-					graph->addNode(words[1]); //sta ako cvor postoji u grapu
-				} else if (words.size()==4) {
-					graph->addEdge(words[1], words[2], stod(words[3])); //sta ako grana postoji u grapu
-				} else {
-					std::cout << "Invalid instruction" << std::endl;
-				}
-			} catch (GraphExcep *e) {
-				std::cout << e->message() << std::endl;
-				delete e;
-			}
-		} else if (words[0]=="REMOVE") {
-			try {
-				if (words.size()==2) {
-					graph->removeNode(words[1]);
-				} else if(words.size()==3) {
-					graph->removeEdge(words[1], words[2]);
-				} else {
-					std::cout << "Invalid instruction" << std::endl;
-				}
-			} catch (GraphExcep *e) {
-				std::cout << e->message() << std::endl;
-				delete e;
-			}
-		} else if (words[0]=="LOAD") {
-			if (words.size()!=2) {
-				std::cout << "Invalid instruction" << std::endl;
-			}
+	int instr;
+	bool quit = false;
+	while (!quit) {
+		std::cout << std::endl;
+		log_instructions();
 
-			try {
-				Graph *new_graph = new Graph(words[1]);
-				delete graph;
-				graph = new_graph;
-			} catch (std::string err) {
-				std::cout << err << std::endl;
-			}
-		} else if (words[0]=="PRINT") {
-			if (words.size()!=1) {
-				std::cout << "Invalid instruction" << std::endl;
-			}
+		std::cout << "Enter instruction number: ";
+		std::cin >> instr;
 
-			graph->printEdges();
-		} else if (words[0]=="CLEAR") {
-			if (words.size()!=1) {
-				std::cout << "Invalid instruction" << std::endl;
-			}
+		if (instr<1 || instr>11) {
+			std::cout << "Invalid instruction number." << std::endl;
+			continue;
+		}
 
-			//graph->clear();
-		} else if (words[0]=="QUIT") {
-			if (words.size()!=1) {
-				std::cout << "Invalid instruction" << std::endl;
-			}
-
-			break;
-		} else if (words[0]=="LIKE") {
-			if (words.size()!=3) {
-				std::cout << "Invalid instruction" << std::endl;
-			}
-
-			try {
-				graph->like(words[1], words[2]);
-			} catch (GraphExcep *e) {
-				std::cout << e->message() << std::endl;
-				delete e;
-			}
-		} else if (words[0]=="SCC") {
-			if (words.size()!=1) {
-				std::cout << "Invalid instruction" << std::endl;
-			}
-
-			Vector<Vector<std::string>> sccs = graph->scc();
-			for (int i=0; i<sccs.size(); i++) {
-				std::cout << "{" << sccs[i][0];
-				for (int j=1; j<sccs[i].size(); j++) {
-					std::cout << ", " << sccs[i][j];
-				}
-
-				std::cout << "}" << std::endl;
-			}
-		} else if (words[0]=="MPP") {
-			if (words.size()!=3) {
-				std::cout << "Invalid instruction" << std::endl;
-			}
-
-			std::cout << graph->mostProbablePath(words[1], words[2]) << std::endl;
-		} else if (words[0]=="INF") {
-			if (words.size()!=2) {
-				std::cout << "Invalid instruction" << std::endl;
-			}
-
-			size_t pos = 0;
-			std::cout << graph->kthInfluencer(std::stoi(words[1], &pos)) << std::endl;
-		} else {
-			std::cout << "Invalid instruction" << std::endl;
+		switch (instr) {
+			case 1:
+				handle_add_node(g);
+				break;
+			case 2:
+				handle_add_edge(g);
+				break;
+			case 3:
+				handle_remove_node(g);
+				break;
+			case 4:
+				handle_remove_edge(g);
+				break;
+			case 5:
+				handle_like(g);
+				break;
+			case 6: 
+				handle_load_from_file(g);
+				break;
+			case 7: 
+				handle_most_probable_path(g);
+				break;
+			case 8: 
+				handle_largest_scc(g);
+				break;
+			case 9: 
+				handle_kth_influencer(g);
+				break;
+			case 10:
+				handle_print(g);
+				break;
+			case 11:
+				quit = true;
+				break;
 		}
 	}
-
-	delete graph;
-	return 0;
 }
+

@@ -16,14 +16,31 @@ Graph::Graph() {
 	indices.push_back(0);
 }
 
-int Graph::idxFromName(std::string name) {
-	for (int i=0; i<idx_to_name.size(); i++) {
-		if (idx_to_name[i]==name) {
-			return i;
+int Graph::getIdxNamePair(std::string name) {
+	int p = 0, q = idx_name_pairs.size()-1;
+	while (p<=q) {
+		int m = (p+q)/2;
+		if (idx_name_pairs[m].second==name) {
+			return m;
+		} else if (idx_name_pairs[m].second<name) {
+			p = m + 1;
+			q = q;
+		} else {
+			p = p;
+			q = m - 1;
 		}
 	}
 
 	return -1;
+}
+
+int Graph::idxFromName(std::string name) {
+	int pair_idx = getIdxNamePair(name);
+	if (pair_idx==-1) {
+		return -1;
+	}
+
+	return idx_name_pairs[pair_idx].first;
 }
 
 Graph::Graph(std::string file_path) {
@@ -31,7 +48,7 @@ Graph::Graph(std::string file_path) {
 
 	std::ifstream fs(file_path);
 	if (!fs.is_open()) {
-		throw std::string("Can't open file");
+		throw FileError();
 	}
 
 	int num_node;
@@ -43,12 +60,7 @@ Graph::Graph(std::string file_path) {
 	std::string node;
 	for (int i=0; i<num_node; i++) {
 		fs >> node;
-		try {
-			addNode(node); //neobradjen izuzetak
-		} catch (GraphExcep *e) {
-			delete e;
-			throw std::string("Error while parsing the file, duplicate node");
-		}
+		addNode(node);
 	}
 
 	std::string from, to;
@@ -56,42 +68,49 @@ Graph::Graph(std::string file_path) {
 
 	for (int i=0; i<num_edges; i++) {
 		fs >> from >> to >> w;
-		try {
-			addEdge(from, to, w);
-		} catch (GraphExcep *e) {
-			std::cout << from << " " << to << std::endl;
-			delete e;
-			throw std::string("Error while parsing the file, duplicate edge");
-		}
+		addEdge(from, to, w);
 	}
 }
 
 void Graph::addNode(std::string name) {
 	if (containsNode(name)) {
-		throw new NodeExists(name);
+		throw NodeExists();
 	}
 
 	idx_to_name.push_back(name);
 	indices.push_back(edges.size());
-}
 
+	int i = 0;
+	while (i<idx_name_pairs.size()) {
+		if (idx_name_pairs[i].second>name) { // > koji je def std::string -> char[MAX_LEN]
+			break;
+		}
+
+		i++;
+	}
+
+	idx_name_pairs.insert(i, Pair<int, std::string>(idx_to_name.size()-1, name));
+}
 
 bool Graph::containsNode(std::string name) {
-	return idxFromName(name)!=-1;
+	return getIdxNamePair(name)!=-1;
 }
-
 
 void Graph::addEdge(std::string from, std::string to, double w) {
 	if (!containsNode(from)) {
-		throw new NoNode(from);
+		throw NoNode(from);
 	}
 
 	if (!containsNode(to)) {
-		throw new NoNode(to);
+		throw NoNode(to);
 	}
 
 	if (containsEdge(from, to)) {
-		throw new EdgeExists(from, to);
+		throw EdgeExists();
+	}
+
+	if (w<=0) {
+		throw InvalidWeight();
 	}
 
 	int from_idx = idxFromName(from);
@@ -133,16 +152,16 @@ bool Graph::containsEdge(std::string from, std::string to) {
 
 void Graph::removeEdge(std::string from, std::string to) {
 	if (!containsNode(from)) {
-		throw new NoNode(from);
+		throw NoNode(from);
 	}
 
 	if (!containsNode(to)) {
-		throw new NoNode(to);
+		throw NoNode(to);
 	}
 
 	int edge_idx = getEdge(from, to);
 	if (edge_idx==-1) {
-		throw new NoEdge(from, to);
+		throw NoEdge();
 	}
 
 	edges.erase(edge_idx);
@@ -157,11 +176,13 @@ void Graph::removeEdge(int from_idx, int to_idx) {
 }
 
 void Graph::removeNode(std::string name) {
-	if (!containsNode(name)) {
-		throw new NoNode(name);
+	int pair_idx = getIdxNamePair(name);
+
+	if (pair_idx==-1) {
+		throw NoNode(name);
 	}
 
-	int idx = idxFromName(name);
+	int idx = idx_name_pairs[pair_idx].first;
 	int num_edges = indices[idx+1] - indices[idx];
 
 	edges.erase(indices[idx], indices[idx+1]);
@@ -190,6 +211,8 @@ void Graph::removeNode(std::string name) {
 			edges[i].first -= 1;
 		}
 	}
+
+	idx_name_pairs.erase(pair_idx);
 }
 
 void Graph::printEdges() {
@@ -204,9 +227,17 @@ void Graph::printEdges() {
 }
 
 void Graph::like(std::string from, std::string to) {
+	if (!containsNode(from)) {
+		throw NoNode(from);
+	}
+
+	if (!containsNode(to)) {
+		throw NoNode(to);
+	}
+
 	int edge_idx = getEdge(from, to);
 	if (edge_idx==-1) {
-		throw new NoEdge(from, to);
+		throw NoEdge();
 	}
 
 	edges[edge_idx].second += 0.1;
@@ -217,11 +248,15 @@ int min(int p, int q) {
 }
 
 #define NILL -1
-Vector<Vector<std::string>> Graph::scc() {
+Vector<std::string> Graph::largestSCC() {
+	int n = numNodes();
+	if (n==0) {
+		throw EmptyGraph();
+	}
+
 	Vector<Vector<std::string>> sccs;
 
-	int n = idx_to_name.size(); //broj cvorova u grafu
-	Vector<int> disc(n, NILL); //index iz one implementacije <-------- ovo ne radi
+	Vector<int> disc(n, NILL);
 	Vector<int> low_link(n, NILL);
 
 	Stack<int> scc_stack;
@@ -292,7 +327,14 @@ Vector<Vector<std::string>> Graph::scc() {
 		}
 	}
 
-	return sccs;
+	int max_len_idx = 0;
+	for (int i=1; i<sccs.size(); i++) {
+		if (sccs[i].size()>sccs[max_len_idx].size()) {
+			max_len_idx = i;
+		}
+	}
+
+	return sccs[max_len_idx];
 }
 
 #define INF -1
@@ -303,17 +345,6 @@ enum Status {
 	IN_QUEUE,
 	NOT_VISITED
 };
-
-int numInQueue(Vector<Status> &status) {
-	int count = 0;
-	for (int i=0; i<status.size(); i++) {
-		if (status[i]==Status::IN_QUEUE) {
-			count += 1;
-		}
-	}
-
-	return count;
-}
 
 int getMaxInQueue(Vector<double> &dist, Vector<Status> &status) {
 	int max_idx = NIL;
@@ -329,20 +360,31 @@ int getMaxInQueue(Vector<double> &dist, Vector<Status> &status) {
 }
 
 std::string Graph::mostProbablePath(std::string source, std::string dest) {
+	if (!containsNode(source)) {
+		throw NoNode(source);
+	}
+
+	if (!containsNode(dest)) {
+		throw NoNode(dest);
+	}
+
 	int n = idx_to_name.size();
 	Vector<double> dist(n, INF);
 	Vector<int> pred(n, NIL);
 	Vector<Status> status(n, Status::NOT_VISITED);
+	int nodes_in_queue = 0;
 
 	int source_idx = idxFromName(source);
 	int dest_idx = idxFromName(dest);
 
 	status[source_idx] = Status::IN_QUEUE;
+	nodes_in_queue += 1;
 	dist[source_idx] = 1;
 
-	while (numInQueue(status)!=0) {
+	while (nodes_in_queue!=0) {
 		int node = getMaxInQueue(dist, status);
 		status[node] = Status::VISITED;
+		nodes_in_queue -= 1;
 
 		for (int i = indices[node]; i<indices[node+1]; i++) {
 			int adj = edges[i].first;
@@ -350,6 +392,7 @@ std::string Graph::mostProbablePath(std::string source, std::string dest) {
 
 			if (status[adj]==Status::NOT_VISITED) {
 				status[adj] = Status::IN_QUEUE;
+				nodes_in_queue += 1;
 				dist[adj] = dist[node] * edge_weight;
 				pred[adj] = node;
 			} else if (status[adj]==Status::IN_QUEUE) {
@@ -502,11 +545,11 @@ int partition(Vector<Pair<int, double>> &A, int p, int q) {
 
 //#include <algorithm>
 //#include <vector>
-//indeksiranje od 1 za korisnia
+//indeksiranje od 1 za korisnika
 //interno je indeksirano od 0
 std::string Graph::kthInfluencer(int k) {
 	if (k<1 || k>numNodes()) {
-		throw std::string("invalid value for k");
+		throw InvalidKValue();
 	}
 
 	k -= 1;
